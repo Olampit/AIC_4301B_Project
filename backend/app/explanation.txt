@@ -59,6 +59,10 @@ Step 4: FastAPI Sends the Response
 
 Also, you need to execute the command line : uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 (if i am not mistaken, it works, at least for me)
 directly into the BACKEND folder, not the app folder. 
+
+Afterwards, you can go to the following adress : 
+http://127.0.0.1:8000/predict/2025
+
 =======
 
 >>>>>>> 6562388d0934ceb67c423fd385fe813904f18022
