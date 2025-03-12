@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Step 1: User Makes a Request
 
     Endpoint: The user sends a GET request to your FastAPI application with the specified year, like this:
@@ -58,3 +59,6 @@ Step 4: FastAPI Sends the Response
 
 Also, you need to execute the command line : uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 (if i am not mistaken, it works, at least for me)
 directly into the BACKEND folder, not the app folder. 
+=======
+
+>>>>>>> 6562388d0934ceb67c423fd385fe813904f18022

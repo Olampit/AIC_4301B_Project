@@ -21,7 +21,10 @@ def forecast(xls_file="../data/conso_mix_RTE_2025.xls", steps=10):
 
         predictions = model_fit.forecast(steps=steps)
 
-        return predictions.tolist()
+        formatted_predictions = [f"{pred:.2f} kWh" for pred in predictions]
+
+
+        return formatted_predictions
     except Exception as e:
         print(f"Error in forecast() : {e}")
         return []
