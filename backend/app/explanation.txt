@@ -1,0 +1,60 @@
+Step 1: User Makes a Request
+
+    Endpoint: The user sends a GET request to your FastAPI application with the specified year, like this:
+        http://localhost:8000/predict/2025
+
+    FastAPI Receives Request:
+        This triggers the predict() function in main.py.
+
+Step 2: FastAPI Calls predict() Function
+
+    How it works:
+
+        Path Variable: The year is extracted from the URL (e.g., 2025).
+        File Path: The csv_file path is constructed using that year (data/conso_mix_RTE_2025.csv).
+        Calling forecast(): The forecast() function is called, passing the constructed file path (csv_file=csv_file) as an argument.
+        Result: The result of the forecast() function (predictions) is returned as a JSON response
+
+Step 3: forecast() Function in model.py
+
+    Parse Energy Data:
+        df = parse_energy_data(csv_file) calls the parse_energy_data() function from database.py.
+        This function processes the raw energy data in the CSV, cleaning and transforming it into a structured DataFrame.
+        Important: The parse_energy_data() function will return a DataFrame with the columns DateTime, PrévisionJ-1, PrévisionJ, and Consommation
+
+    Extract Time Series Data:
+        time_series = df['Consommation'] extracts the "Consommation" column, which contains the energy consumption values (the series you want to predict).
+
+    Remove Missing Values:
+        time_series = time_series.dropna() removes any rows that have missing values from the time series. This is important because ARIMA cannot handle missing data.
+
+    Fit the ARIMA Model:
+        model = ARIMA(time_series, order=(2, 1, 2)) creates an ARIMA model with the parameters:
+            2 (AR): The number of lag observations (past values) to include in the model.
+            1 (I): The number of times the data should be differenced to make it stationary.
+            2 (MA): The number of lagged forecast errors to include in the model.
+        The ARIMA model is trained using the cleaned and processed time series with model_fit = model.fit().
+
+    Make Predictions:
+        predictions = model_fit.forecast(steps=steps) generates future predictions. By default, it predicts the next 10 values (steps=10), but you can change that by passing a different steps argument to the forecast() function.
+
+    Return Predictions:
+        return predictions.tolist() returns the predictions as a list. These predictions will be used by FastAPI to send the response back to the user.
+
+Step 4: FastAPI Sends the Response
+
+    How it works:
+
+        The forecast() function returns a list of predicted energy consumption values (e.g., [230, 250, 275, 300, 320, 350, 380, 400, 420, 440]).
+
+        FastAPI sends these predictions back to the user in the form of a JSON response:
+
+            {
+                "forecast": [230, 250, 275, 300, 320, 350, 380, 400, 420, 440]
+            }
+
+
+
+
+Also, you need to execute the command line : uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 (if i am not mistaken, it works, at least for me)
+directly into the BACKEND folder, not the app folder. 
