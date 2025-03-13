@@ -2,7 +2,9 @@ import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 from app.database import parse_energy_data
 
-def forecast(xls_file="../data/conso_mix_RTE_2025.xls", steps=10):
+#="../data/conso_mix_RTE_2025.xls"
+
+def forecast(xls_file, steps=10):
     try:
         df = parse_energy_data(xls_file)
 
