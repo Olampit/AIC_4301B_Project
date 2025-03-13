@@ -30,7 +30,7 @@ def parse_energy_data(file_path):
         df = pd.DataFrame(data, columns=['Date', 'Time', 'PrévisionJ-1', 'PrévisionJ', 'Consommation'])
         df['DateTime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], format='%d/%m/%Y %H:%M')
         df = df[['DateTime', 'PrévisionJ-1', 'PrévisionJ', 'Consommation']]
-        df['Date'] = df['DateTime'].dt.date #grouping by date mandatory line
+        df['Date'] = df['DateTime'].dt.date #grouping by date, mandatory line
 
 
         #below is missing data handling :
