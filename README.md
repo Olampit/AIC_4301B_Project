@@ -27,17 +27,18 @@ Created the API (working)
 
 Finished data handling (for missing values)
 
+Implemented the models (AR, MA, ARMA, SARIMAX).
+
 
 ## To do :
 
-finish the backend part. Available models : AR, MA, ARMA, SARIMAX
+Some warnings to get rid of (in backend)
 
 Implement the database service.
 
 Develop the front-end visualization.
 
 Containerize all services with Docker.
-
 
 
 # Contributors
