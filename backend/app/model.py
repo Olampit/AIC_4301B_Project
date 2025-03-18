@@ -1,8 +1,21 @@
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 from app.database import parse_energy_data
 
-def forecast(xls_file="../data/conso_mix_RTE_2025.xls", steps=365):
+def forecast_ar(xls_file, steps=10):
+    return _forecast_generic(xls_file, steps, order=(1, 0, 0))  # AR model
+
+def forecast_ma(xls_file, steps=10):
+    return _forecast_generic(xls_file, steps, order=(0, 0, 1))  # MA model
+
+def forecast_arma(xls_file, steps=1):
+    return _forecast_generic(xls_file, steps, order=(1, 0, 1))  # ARMA model
+
+def forecast_sarimax(xls_file, steps=1):
+    return _forecast_generic(xls_file, steps, sarimax=True)  # SARIMAX model
+
+def _forecast_generic(xls_file, steps, order=None, sarimax=False):
     try:
         df = parse_energy_data(xls_file)
 
@@ -11,26 +24,25 @@ def forecast(xls_file="../data/conso_mix_RTE_2025.xls", steps=365):
             return []
 
         df.set_index("DateTime", inplace=True)
-
         time_series = df['Consommation'].dropna()
 
         if len(time_series) < 2:
             print("Not enough data for forecasting!")
             return []
 
-        model = ARIMA(time_series, order=(2, 1, 2)) 
-        model_fit = model.fit()
+        if sarimax:
+            model = SARIMAX(time_series, order=(1, 1, 1), seasonal_order=(1, 1, 1, 672))
+        else:
+            model = ARIMA(time_series, order=order)
 
+        model_fit = model.fit()
         predictions = model_fit.forecast(steps=steps)
 
         last_date = df.index.max()
-        future_dates = pd.date_range(start=last_date, periods=steps + 1, freq="15min")[1:]  
+        future_dates = pd.date_range(start=last_date, periods=steps + 1, freq="15min")[1:]
 
         forecast_df = pd.DataFrame({"DateTime": future_dates, "Forecast": predictions})
-        
-        # ✅ Format DateTime properly (remove 'T')
         forecast_df["DateTime"] = forecast_df["DateTime"].dt.strftime("%Y-%m-%d %H:%M:%S")
-
         forecast_df["Forecast"] = forecast_df["Forecast"].apply(lambda x: f"{x:.2f} kWh")
 
         return forecast_df.to_dict(orient="records")
