@@ -8,7 +8,7 @@ def forecast(xls_file="../data/conso_mix_RTE_2025.xls", steps=365):
 
         if df.empty:
             print("No data available!")
-            return pd.DataFrame(columns=["DateTime", "Forecast"])
+            return []
 
         df.set_index("DateTime", inplace=True)
 
@@ -16,7 +16,7 @@ def forecast(xls_file="../data/conso_mix_RTE_2025.xls", steps=365):
 
         if len(time_series) < 2:
             print("Not enough data for forecasting!")
-            return pd.DataFrame(columns=["DateTime", "Forecast"])
+            return []
 
         model = ARIMA(time_series, order=(2, 1, 2)) 
         model_fit = model.fit()
@@ -29,7 +29,9 @@ def forecast(xls_file="../data/conso_mix_RTE_2025.xls", steps=365):
         forecast_df = pd.DataFrame({"DateTime": future_dates, "Forecast": predictions})
         forecast_df["Forecast"] = forecast_df["Forecast"].apply(lambda x: f"{x:.2f} kWh")
 
-        return forecast_df
+        # ✅ Return JSON with correct format
+        return forecast_df.to_dict(orient="records")
+
     except Exception as e:
         print(f"Error in forecast(): {e}")
-        return pd.DataFrame(columns=["DateTime", "Forecast"])
+        return []
