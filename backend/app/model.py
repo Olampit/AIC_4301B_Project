@@ -24,12 +24,11 @@ def forecast(xls_file="../data/conso_mix_RTE_2025.xls", steps=365):
         predictions = model_fit.forecast(steps=steps)
 
         last_date = df.index.max()
-        future_dates = pd.date_range(start=last_date, periods=steps + 1, freq="h")[1:]
+        future_dates = pd.date_range(start=last_date, periods=steps + 1, freq="15min")[1:]  # ✅ Quarter-hour intervals
 
         forecast_df = pd.DataFrame({"DateTime": future_dates, "Forecast": predictions})
         forecast_df["Forecast"] = forecast_df["Forecast"].apply(lambda x: f"{x:.2f} kWh")
 
-        # ✅ Return JSON with correct format
         return forecast_df.to_dict(orient="records")
 
     except Exception as e:
