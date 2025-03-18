@@ -4,16 +4,16 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 from app.database import parse_energy_data
 
 def forecast_ar(xls_file, steps=10):
-    return _forecast_generic(xls_file, steps, order=(1, 0, 0))  # AR model
+    return _forecast_generic(xls_file, steps, order=(1, 0, 0))
 
 def forecast_ma(xls_file, steps=10):
-    return _forecast_generic(xls_file, steps, order=(0, 0, 1))  # MA model
+    return _forecast_generic(xls_file, steps, order=(0, 0, 1))
 
-def forecast_arma(xls_file, steps=1):
-    return _forecast_generic(xls_file, steps, order=(1, 0, 1))  # ARMA model
+def forecast_arma(xls_file, steps=10):
+    return _forecast_generic(xls_file, steps, order=(1, 0, 1))
 
-def forecast_sarimax(xls_file, steps=1):
-    return _forecast_generic(xls_file, steps, sarimax=True)  # SARIMAX model
+def forecast_sarimax(xls_file, steps=10):
+    return _forecast_generic(xls_file, steps, sarimax=True)
 
 def _forecast_generic(xls_file, steps, order=None, sarimax=False):
     try:
@@ -24,6 +24,9 @@ def _forecast_generic(xls_file, steps, order=None, sarimax=False):
             return []
 
         df.set_index("DateTime", inplace=True)
+        df.index = pd.to_datetime(df.index)
+        df = df.asfreq('15min')
+
         time_series = df['Consommation'].dropna()
 
         if len(time_series) < 2:
@@ -31,7 +34,7 @@ def _forecast_generic(xls_file, steps, order=None, sarimax=False):
             return []
 
         if sarimax:
-            model = SARIMAX(time_series, order=(1, 1, 1), seasonal_order=(1, 1, 1, 672))
+            model = SARIMAX(time_series, order=(1, 1, 1), seasonal_order=(1, 1, 1, 96))
         else:
             model = ARIMA(time_series, order=order)
 
