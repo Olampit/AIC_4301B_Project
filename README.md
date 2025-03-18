@@ -21,10 +21,16 @@ Front-end Service: A dashboard to visualize forecasts.
 
 
 
+## Done :
+
+Created the API (working)
+
+Finished data handling (for missing values)
+
 
 ## To do :
 
-finish the backend part
+finish the backend part. Available models : AR, MA, ARMA, SARIMAX
 
 Implement the database service.
 
