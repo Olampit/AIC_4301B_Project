@@ -1,3 +1,5 @@
+#Main programm of the backend
+
 from fastapi import FastAPI
 from app.model import forecast_ar, forecast_ma, forecast_arma, forecast_sarimax
 
