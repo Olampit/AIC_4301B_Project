@@ -81,4 +81,4 @@ Running the FastAPI Server
     http://127.0.0.1:8000/predict/AR/2025
     http://127.0.0.1:8000/predict/MA/2024
     http://127.0.0.1:8000/predict/ARMA/2023
-    http://127.0.0.1:8000/predict/SARIMAX/2022 
+    http://127.0.0.1:8000/predict/SARIMAX/2023

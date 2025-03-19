@@ -15,7 +15,7 @@ def forecast_ma(xls_file, steps=10):
 def forecast_arma(xls_file, steps=10):
     return _forecast_generic(xls_file, steps, order=(1, 0, 1))
 
-def forecast_sarimax(xls_file, steps=10):
+def forecast_sarimax(xls_file, steps=1):
     return _forecast_generic(xls_file, steps, sarimax=True)
 
 #Generic prediction function taking in parameter the model of prediction
