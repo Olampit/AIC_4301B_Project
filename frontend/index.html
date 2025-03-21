@@ -23,7 +23,20 @@
         <option value="SARIMAX">SARIMAX</option>
     </select>
 
+    <label for="display">Display mode</label>
+    <select id="display">
+        <option value="JSON">JSON</option>
+        <option value="GRAPH">GRAPH</option>
+    </select>
+
     <button onclick="getForecast()">Predict</button>
+   
+
+    <div id="chart"></div>
+
+    <!-- Add of Plotly.js to generate graphs -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
     <pre id="result"></pre>
 
     <script>
@@ -54,9 +67,52 @@
 
                 let data = await response.json();
                 // alert("Still no problem here");
-
+                
                 console.log("Received Data:", data);
-                document.getElementById("result").textContent = `Prédictions pour ${parseInt(year) + 1} (model ${model}):\n` + JSON.stringify(data, null, 2);
+                console.log("Received Data (typeof):", typeof data);
+                console.log("Received Data (content):", data);
+                
+                let Data = data.forecast; // Récupérer le tableau
+
+                if (!Array.isArray(Data)) {
+                    console.error("Unexpected JSON format:", data);
+                    return;
+                }
+
+                // Transformation des données pour Plotly
+                let dates = Data.map(entry => entry.DateTime);
+                let values = Data.map(entry => parseFloat(entry.Forecast.replace(" kWh", "")));
+
+                let displayMode = document.getElementById("display").value;
+
+                // Affichage selon le mode sélectionné
+                if (displayMode === "JSON") {
+                    document.getElementById("chart").style.display = "none";  // Cache le graphique
+                    document.getElementById("result").style.display = "block"; // Affiche le JSON
+                    document.getElementById("result").textContent = `Prédictions pour ${parseInt(year) + 1} (model ${model}):\n` + JSON.stringify(data, null, 2);
+                } 
+                else if (displayMode === "GRAPH") {
+                    document.getElementById("result").style.display = "none"; // Cache le JSON
+                    document.getElementById("chart").style.display = "block"; // Affiche le graphique
+
+                    // Tracé du graphique avec Plotly
+                    let trace = {
+                        x: dates,
+                        y: values,
+                        mode: 'lines',
+                        name: `Prévisions ${model}`,
+                        line: { color: 'blue', dash: 'dash' }
+                    };
+
+                    let layout = {
+                        title: `Prévisions de consommation pour ${parseInt(year) + 1}`,
+                        xaxis: { title: 'Date' },
+                        yaxis: { title: 'Consommation (kWh)' }
+                    };
+
+                    Plotly.newPlot('chart', [trace], layout);
+                }
+
 
             } catch (error) {
                 console.error("Error fetching data:", error);

@@ -1,18 +1,20 @@
 #Definition of the prediction functions using the differement models
 #AR, MA, ARMA, SARIMAX
 
-import pandas as pd
+#imports of the models
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-from app.database import parse_energy_data
 
-def forecast_ar(xls_file, steps=10):
+import pandas as pd #To deal with dataframes
+from app.database import parse_energy_data #Function defined in the file database.py to transform the .xls files in dataframes
+
+def forecast_ar(xls_file, steps=30000):
     return _forecast_generic(xls_file, steps, order=(1, 0, 0))
 
-def forecast_ma(xls_file, steps=10):
+def forecast_ma(xls_file, steps=30000):
     return _forecast_generic(xls_file, steps, order=(0, 0, 1))
 
-def forecast_arma(xls_file, steps=10):
+def forecast_arma(xls_file, steps=30000):
     return _forecast_generic(xls_file, steps, order=(1, 0, 1))
 
 def forecast_sarimax(xls_file, steps=1):
@@ -34,34 +36,10 @@ def _forecast_generic(xls_file, steps, order=None, sarimax=False):
         df = df.reset_index()  #Delete the multiIndex (Time, Date)
         df["DateTime"] = pd.to_datetime(df["DateTime"])  #Conversion of DateTime to the correct type 
         df.set_index("DateTime", inplace=True)  #Create a simple index
-        df = df.sort_index()  # Assure un bon ordre chronologique
-        
-        """
-        print(f" Before asfreq, missing values :\n {df.isna().sum()} \n")
-
-       
-        
-        print(df.index.to_series().diff().value_counts())
-        print(df.index[df.index.to_series().diff() > pd.Timedelta("15min")])
-        print(df.head())
-        """
+        df = df.sort_index()  #Ensure a good chronologic order
 
         df = df.asfreq("15min")  #Resample the dataframe at 15 min by sample (already done on the original xls file)
-        df.dropna(inplace=True)  # Supprime toutes les lignes contenant des NaN après asfreq
-        
-        """
-        print(f" After asfreq and dropna, missing values :\n {df.isna().sum()} \n")
-
-        #2) Filling the NaN values created by the resampling with the value of the last week in the dataset
-        df = df.asfreq("15min") 
-
-        for dt in df.index[df.isna().any(axis=1)]:  #Loop on the date with a NaN value
-            previous_week = dt - pd.Timedelta(days=7)  #Take the date of last week
-            if previous_week in df.index:  # Vérifie si la date existe
-                df.loc[dt, ["PrévisionJ-1", "PrévisionJ", "Consommation"]] = df.loc[previous_week, ["PrévisionJ-1", "PrévisionJ", "Consommation"]]
-        
-        print(f" Before asfreq, after fix, missing values :\n {df.isna().sum()} \n")
-        """
+        df.dropna(inplace=True)  #Delete all the lines containing NaN values after the asfreq()
 
         time_series = df['Consommation'].dropna() #We select all the values not null of the consommation field 
 
@@ -79,7 +57,7 @@ def _forecast_generic(xls_file, steps, order=None, sarimax=False):
         model_fit = model.fit()
         predictions = model_fit.forecast(steps=steps)
 
-        # Trouver la dernière date correcte dans l'année demandée
+        #Finding the last correct date in the year asked
         last_date = df.index.max()
 
         #Generates a sequence of future timestamps with a 15-minute interval.
@@ -90,9 +68,11 @@ def _forecast_generic(xls_file, steps, order=None, sarimax=False):
         forecast_df["DateTime"] = forecast_df["DateTime"].dt.strftime("%Y-%m-%d %H:%M:%S")
         forecast_df["Forecast"] = forecast_df["Forecast"].apply(lambda x: f"{x:.2f} kWh")
 
-        #Return the dataframe in a JSON format
+
+        #Return the forecast in .JSON format
         return forecast_df.to_dict(orient="records")
 
     except Exception as e:
         print(f"Error in forecast(): {e}")
         return []
+
