@@ -50,12 +50,13 @@ def parse_energy_data(file_path):
         df = df[['DateTime', 'PrévisionJ-1', 'PrévisionJ', 'Consommation']]
         df['Date'] = df['DateTime'].dt.date #grouping by date, mandatory line
 
-
+        
 
         #Handling of missing data
 
         #Fill the missing values by the numerical mean of the fields with the same date
         df = df.groupby('Date').apply(lambda group: group.fillna(group.mean(numeric_only=True)))
+
 
         #Definition of a threshold for missing data at 50%
         threshold = 0.5 
@@ -77,6 +78,8 @@ def parse_energy_data(file_path):
 
         #Drop the column date of the dataframe (no longer needed)
         df.drop(columns=['Date'], inplace=True)
+
+        print(f"data head : {df.head()}")
 
         #Return the completed dataframe
         return df

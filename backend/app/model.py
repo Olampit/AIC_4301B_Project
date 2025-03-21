@@ -27,10 +27,41 @@ def _forecast_generic(xls_file, steps, order=None, sarimax=False):
             print("No data available!")
             return []
 
-        #Setting the field of DateTime as the index of the dataframe
-        df.set_index("DateTime", inplace=True)
-        df.index = pd.to_datetime(df.index)
-        df = df.asfreq('15min')
+        
+        #The following lines are used in order to avoid numerous NaN values due to a wrong indexing
+
+        #1) Setting the field of DateTime as the index of the dataframe
+        df = df.reset_index()  #Delete the multiIndex (Time, Date)
+        df["DateTime"] = pd.to_datetime(df["DateTime"])  #Conversion of DateTime to the correct type 
+        df.set_index("DateTime", inplace=True)  #Create a simple index
+        df = df.sort_index()  # Assure un bon ordre chronologique
+        
+        """
+        print(f" Before asfreq, missing values :\n {df.isna().sum()} \n")
+
+       
+        
+        print(df.index.to_series().diff().value_counts())
+        print(df.index[df.index.to_series().diff() > pd.Timedelta("15min")])
+        print(df.head())
+        """
+
+        df = df.asfreq("15min")  #Resample the dataframe at 15 min by sample (already done on the original xls file)
+        df.dropna(inplace=True)  # Supprime toutes les lignes contenant des NaN après asfreq
+        
+        """
+        print(f" After asfreq and dropna, missing values :\n {df.isna().sum()} \n")
+
+        #2) Filling the NaN values created by the resampling with the value of the last week in the dataset
+        df = df.asfreq("15min") 
+
+        for dt in df.index[df.isna().any(axis=1)]:  #Loop on the date with a NaN value
+            previous_week = dt - pd.Timedelta(days=7)  #Take the date of last week
+            if previous_week in df.index:  # Vérifie si la date existe
+                df.loc[dt, ["PrévisionJ-1", "PrévisionJ", "Consommation"]] = df.loc[previous_week, ["PrévisionJ-1", "PrévisionJ", "Consommation"]]
+        
+        print(f" Before asfreq, after fix, missing values :\n {df.isna().sum()} \n")
+        """
 
         time_series = df['Consommation'].dropna() #We select all the values not null of the consommation field 
 
@@ -48,8 +79,10 @@ def _forecast_generic(xls_file, steps, order=None, sarimax=False):
         model_fit = model.fit()
         predictions = model_fit.forecast(steps=steps)
 
+        # Trouver la dernière date correcte dans l'année demandée
+        last_date = df.index.max()
+
         #Generates a sequence of future timestamps with a 15-minute interval.
-        last_date = df.index.max() 
         future_dates = pd.date_range(start=last_date, periods=steps + 1, freq="15min")[1:]
 
         #Creates a DataFrame and store the forecasted results inside it

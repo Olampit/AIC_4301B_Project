@@ -2,8 +2,18 @@
 
 from fastapi import FastAPI
 from app.model import forecast_ar, forecast_ma, forecast_arma, forecast_sarimax
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# Active CORS pour permettre les requêtes du frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Autorise toutes les origines (dont notre fichier index.html)
+    allow_credentials=True,
+    allow_methods=["*"],  # Autorise toutes les méthodes (GET, POST, etc.)
+    allow_headers=["*"],  # Autorise tous les headers
+)
 
 @app.get("/")
 def home():
@@ -19,6 +29,8 @@ def predict(model: str, year: int):
     """
     try:
         xls_file = f"data/conso_mix_RTE_{year}.xls"
+
+        print(f"Fichier source : {xls_file}")
 
         model_map = {
             "AR": forecast_ar,
