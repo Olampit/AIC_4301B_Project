@@ -33,7 +33,7 @@ Implemented a graphical view of the predictions.
 
 Developped a front-end visualization.
 
-
+Containerized the files with docker.
 
 ## To do :
 
