@@ -72,30 +72,30 @@
                 console.log("Received Data (typeof):", typeof data);
                 console.log("Received Data (content):", data);
                 
-                let Data = data.forecast; // Récupérer le tableau
+                let Data = data.forecast;
 
                 if (!Array.isArray(Data)) {
                     console.error("Unexpected JSON format:", data);
                     return;
                 }
 
-                // Transformation des données pour Plotly
+                //transforming data to have plotly handle it.
                 let dates = Data.map(entry => entry.DateTime);
                 let values = Data.map(entry => parseFloat(entry.Forecast.replace(" kWh", "")));
 
                 let displayMode = document.getElementById("display").value;
 
-                // Affichage selon le mode sélectionné
+                //displaying either the raw data or the graph
                 if (displayMode === "JSON") {
-                    document.getElementById("chart").style.display = "none";  // Cache le graphique
-                    document.getElementById("result").style.display = "block"; // Affiche le JSON
+                    document.getElementById("chart").style.display = "none";  //hiding the graph
+                    document.getElementById("result").style.display = "block"; 
                     document.getElementById("result").textContent = `Prédictions pour ${parseInt(year) + 1} (model ${model}):\n` + JSON.stringify(data, null, 2);
                 } 
                 else if (displayMode === "GRAPH") {
-                    document.getElementById("result").style.display = "none"; // Cache le JSON
-                    document.getElementById("chart").style.display = "block"; // Affiche le graphique
+                    document.getElementById("result").style.display = "none"; //hiding the json
+                    document.getElementById("chart").style.display = "block"; 
 
-                    // Tracé du graphique avec Plotly
+                    //We use plotly do plot graphs
                     let trace = {
                         x: dates,
                         y: values,
