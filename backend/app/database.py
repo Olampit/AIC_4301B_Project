@@ -2,7 +2,7 @@ import pandas as pd
 import re
 
 def parse_energy_data(file_path):
-    #Use of try/catch block to handle errors
+    #Use of try/catch block to handle errors (was handy at first to make sure everything worked)
     try:
 
         #We open the xls file and read it line by line
@@ -39,7 +39,7 @@ def parse_energy_data(file_path):
                     data.append([current_date, time, int(prev_j1), int(prev_j), int(consommation)])
                 
                 #Error Handling : in case one of fields are empty 
-                #(by experience, time and current data are never empty)
+                #(by experience, time and current data are never empty, except in the 2023 folder)
                 except ValueError:
                     data.append([current_date, time, None, None, None])
 
@@ -52,13 +52,13 @@ def parse_energy_data(file_path):
 
         
 
-        #Handling of missing data
+        #Handling the missing data
 
         #Fill the missing values by the numerical mean of the fields with the same date
         df = df.groupby('Date').apply(lambda group: group.fillna(group.mean(numeric_only=True)))
 
 
-        #Definition of a threshold for missing data at 50%
+        #Definition of a threshold for missing data (at 50% here)
         threshold = 0.5 
 
         #We loop through each unique date in the DataFrame

@@ -1,4 +1,4 @@
-#Definition of the prediction functions using the differement models
+#Definition of the prediction functions using the different models
 #AR, MA, ARMA, SARIMAX
 
 #imports of the models
