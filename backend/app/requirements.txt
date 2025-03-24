@@ -1,2 +1,7 @@
 pandas
 statsmodels
+uvicorn
+fastapi
+app.model
+app.database
+re
