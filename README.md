@@ -23,22 +23,21 @@ Front-end Service: A dashboard to visualize forecasts.
 
 ## Done :
 
-Created the API (working)
+Created the API (working).
 
-Finished data handling (for missing values)
+Finished data handling (for missing values).
 
 Implemented the models (AR, MA, ARMA, SARIMAX).
+
+Implemented a graphical view of the predictions.
+
+Developped a front-end visualization.
+
 
 
 ## To do :
 
-Some warnings to get rid of (in backend)
-
-Implement the database service.
-
-Develop the front-end visualization.
-
-Containerize all services with Docker.
+Implement the database service. ?
 
 
 # Contributors
