@@ -1,17 +1,23 @@
 services:
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
-
+      context: .
+      dockerfile: backend/Dockerfile  # Assurez-vous que le Dockerfile est dans le répertoire backend
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
+      - ./backend/data:/app/data  # Copier tout le code du backend dans /app dans le conteneur
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    restart: always
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile  # Assurez-vous que le Dockerfile du frontend est dans le répertoire frontend
     ports:
       - "3000:3000"
     depends_on:
-      - backend 
+      - backend
+    restart: always
