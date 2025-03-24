@@ -44,8 +44,8 @@ Implement the database service. => faire un vrai serveur de base de données
 
 Overall :
 
-We should modify the functions so that we do not have to refit the models and we only have to predict using them
-We should modify the data storage to have it separated from the model part
+We should modify the functions so that we do not have to refit the models and we only have to predict using them / will not be done because we would have to change the entire structure and when we tried it did not work.
+We should modify the data storage to have it separated from the model part 
 We should containerize every part of the project, not just the project as a whole ? 
 We should orchestrate the containers i guess
 
