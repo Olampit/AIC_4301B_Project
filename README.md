@@ -37,7 +37,7 @@ Containerized the files with docker.
 
 ## To do :
 
-Implement the database service. ?
+Implement the database service. => faire un vrai serveur de base de données
 
 
 # Contributors
