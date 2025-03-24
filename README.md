@@ -37,6 +37,8 @@ Containerized the files with docker.
 
 ## To do :
 
+Ajouter un outil de sélection de dates où l'utilisateur peut choisir la durée et le début des prédictions (et faire des valeurs de base cohérentes)
+
 Implement the database service. => faire un vrai serveur de base de données
 
 
