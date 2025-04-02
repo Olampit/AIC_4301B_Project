@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+<link rel="stylesheet" href="style.css">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forecasting API</title>
 </head>
 <body>
-    <h1>Consumption Forecast</h1>
+    <h1>Electricity Consumption Forecast of the year 2025</h1>
+    <h2>Project by : OLAMPI Terry, TRAN Mickaël, UTRERA Margot, PERNOT Thomas</h2>
 
-    <label for="year">Enter Year:</label>
-    <select id="year">
-        <option value="2023">2023</option>
-        <option value="2024">2024</option>
-        <option value="2025">2025</option>
-    </select>
+    <label for="start-date">Start Date:</label>
+    <input type="date" id="start-date" min="2025-01-01" max="2025-12-31" value="2025-01-01">
+
+    <label for="end-date">End Date:</label>
+    <input type="date" id="end-date" min="2025-01-01" max="2025-12-31" value="2025-12-31">
+
 
     <label for="model">Select Model:</label>
     <select id="model">
@@ -22,14 +25,14 @@
         <option value="MA">MA</option>
         <option value="SARIMAX">SARIMAX</option>
     </select>
-
+C
     <label for="display">Display mode</label>
     <select id="display">
         <option value="JSON">JSON</option>
         <option value="GRAPH">GRAPH</option>
     </select>
 
-    <button onclick="getForecast()">Predict</button>
+    <button id="predict-btn" onclick="getForecast()">Predict from 01-01-2025 to 31-12-2025</button>
    
 
     <div id="chart"></div>
@@ -40,85 +43,99 @@
     <pre id="result"></pre>
 
     <script>
+       function formatDate(dateString) {
+            let date = new Date(dateString);
+            let day = date.getDate().toString().padStart(2, '0');
+            let month = (date.getMonth() + 1).toString().padStart(2, '0'); // Mois de 0 à 11, donc +1
+            let year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function updateButtonText() {
+            let startDate = document.getElementById("start-date").value;
+            let endDate = document.getElementById("end-date").value;
+            let button = document.getElementById("predict-btn");
+
+            button.textContent = `Predict from ${formatDate(startDate)} to ${formatDate(endDate)}`;
+        }
+
+        // Écoute les changements de date et met à jour le bouton
+        document.getElementById("start-date").addEventListener("change", updateButtonText);
+        document.getElementById("end-date").addEventListener("change", updateButtonText);
+
+        // Masquer le résultat au chargement de la page
+        document.getElementById("result").style.display = "none";
+
         async function getForecast() {
-            let year = document.getElementById("year").value;
+            let startDate = document.getElementById("start-date").value;
+            let endDate = document.getElementById("end-date").value;
             let model = document.getElementById("model").value;
 
-            if (!year) {
-                alert("Please enter a year.");
+            if (!startDate || !endDate) {
+                alert("Please select both start and end dates.");
                 return;
-            }
-            else if (!model) {
+            } else if (startDate > endDate) {
+                alert("The start date must be earlier than the end date");
+                return;
+            } else if (!model) {
                 alert("Please select a model.");
                 return;
             }
-            
+
+            // Cacher le résultat avant de lancer la requête pour éviter une ligne blanche
+            document.getElementById("result").style.display = "none";
+            document.getElementById("result").textContent = "";
+
             try {
-                let url = `http://127.0.0.1:8000/predict/${model}/${year}`;
+                let url = `http://127.0.0.1:8000/predict/${model}?start=${startDate}&end=${endDate}`;
                 console.log("Fetching URL:", url);
 
                 let response = await fetch(url);
-                // alert("No problem here");
-
-                console.log("Response Status:", response.status);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
                 let data = await response.json();
-                // alert("Still no problem here");
-                
                 console.log("Received Data:", data);
-                console.log("Received Data (typeof):", typeof data);
-                console.log("Received Data (content):", data);
-                
-                let Data = data.forecast;
 
+                let Data = data.forecast;
                 if (!Array.isArray(Data)) {
                     console.error("Unexpected JSON format:", data);
                     return;
                 }
 
-                //transforming data to have plotly handle it.
                 let dates = Data.map(entry => entry.DateTime);
                 let values = Data.map(entry => parseFloat(entry.Forecast.replace(" kWh", "")));
 
                 let displayMode = document.getElementById("display").value;
-
-                //displaying either the raw data or the graph
                 if (displayMode === "JSON") {
-                    document.getElementById("chart").style.display = "none";  //hiding the graph
-                    document.getElementById("result").style.display = "block"; 
-                    document.getElementById("result").textContent = `Prédictions pour ${parseInt(year) + 1} (model ${model}):\n` + JSON.stringify(data, null, 2);
-                } 
-                else if (displayMode === "GRAPH") {
-                    document.getElementById("result").style.display = "none"; //hiding the json
-                    document.getElementById("chart").style.display = "block"; 
+                    document.getElementById("chart").style.display = "none";
+                    document.getElementById("result").style.display = "block";
+                    document.getElementById("result").textContent = JSON.stringify(data.forecast, null, 2);
+                } else if (displayMode === "GRAPH") {
+                    document.getElementById("result").style.display = "none";
+                    document.getElementById("chart").style.display = "block";
 
-                    //We use plotly do plot graphs
-                    let trace = {
+                    Plotly.newPlot('chart', [{
                         x: dates,
                         y: values,
                         mode: 'lines',
                         name: `Prévisions ${model}`,
                         line: { color: 'blue', dash: 'dash' }
-                    };
-
-                    let layout = {
-                        title: `Prévisions de consommation pour ${parseInt(year) + 1}`,
+                    }], {
+                        title: `Prévisions de consommation`,
                         xaxis: { title: 'Date' },
                         yaxis: { title: 'Consommation (kWh)' }
-                    };
-
-                    Plotly.newPlot('chart', [trace], layout);
+                    });
                 }
-
-
             } catch (error) {
                 console.error("Error fetching data:", error);
+                document.getElementById("result").style.display = "block";
                 document.getElementById("result").textContent = "Error fetching forecast.";
             }
         }
+
+
     </script>
 
 </body>
