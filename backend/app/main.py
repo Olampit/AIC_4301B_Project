@@ -1,19 +1,23 @@
-#Main programm of the backend
-
 from fastapi import FastAPI
-from app.model import forecast_ar, forecast_ma, forecast_arma, forecast_sarimax
 from fastapi.middleware.cors import CORSMiddleware
+from app.model import forecast_ar, forecast_ma, forecast_arma, forecast_sarimax
+import os
+import pandas as pd
 
 app = FastAPI()
 
 # Active CORS pour permettre les requêtes du frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Autorise toutes les origines (dont notre fichier index.html)
+    allow_origins=["*"],  # Autorise toutes les origines
     allow_credentials=True,
     allow_methods=["*"],  # Autorise toutes les méthodes (GET, POST, etc.)
     allow_headers=["*"],  # Autorise tous les headers
 )
+
+# 📂 Répertoire où les prédictions seront enregistrées
+SAVE_DIR = "saved_predictions"
+os.makedirs(SAVE_DIR, exist_ok=True)
 
 @app.get("/")
 def home():
@@ -29,8 +33,14 @@ def predict(model: str, year: int):
     """
     try:
         xls_file = f"data/conso_mix_RTE_{year}.xls"
+        csv_file = os.path.join(SAVE_DIR, f"forecast_{model.upper()}_{year}.csv")
 
-        print(f"Fichier source : {xls_file}")
+        print(f"🔍 Vérification du fichier : {csv_file}")
+
+        # 🔄 Si le fichier CSV existe, on le charge directement
+        if os.path.exists(csv_file):
+            print(f"📥 Chargement des prédictions depuis {csv_file}...")
+            return {"forecast": pd.read_csv(csv_file).to_dict(orient="records")}
 
         model_map = {
             "AR": forecast_ar,
@@ -42,7 +52,10 @@ def predict(model: str, year: int):
         if model.upper() not in model_map:
             return {"error": "Invalid model type. Use AR, MA, ARMA, or SARIMAX."}
 
+        # 📈 Calcul de la prédiction et sauvegarde
         result = model_map[model.upper()](xls_file=xls_file)
+        pd.DataFrame(result).to_csv(csv_file, index=False)
+        print(f"✅ Prédictions sauvegardées dans {csv_file}")
 
         return {"forecast": result}
 
