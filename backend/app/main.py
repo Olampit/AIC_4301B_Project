@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.model import forecast_ar, forecast_ma, forecast_arma, forecast_sarimax
+from app.model import forecast_ar, forecast_ma, forecast_arma, forecast_sarimax, forecast_linear
 import os
 import pandas as pd
 
@@ -47,10 +47,11 @@ def predict(model: str, year: int):
             "MA": forecast_ma,
             "ARMA": forecast_arma,
             "SARIMAX": forecast_sarimax,
+            "LINEAR": forecast_linear, 
         }
 
         if model.upper() not in model_map:
-            return {"error": "Invalid model type. Use AR, MA, ARMA, or SARIMAX."}
+            return {"error": "Invalid model type. Use AR, MA, ARMA, SARIMAX or LINEAR."}
 
         # 📈 Calcul de la prédiction et sauvegarde
         result = model_map[model.upper()](xls_file=xls_file)
