@@ -24,6 +24,7 @@
         <option value="ARMA">ARMA</option>
         <option value="MA">MA</option>
         <option value="SARIMAX">SARIMAX</option>
+        <option value="LINEAR">LINEAR (day by day prediction)</option>
     </select>
 C
     <label for="display">Display mode</label>
@@ -87,7 +88,7 @@ C
             document.getElementById("result").textContent = "";
 
             try {
-                let url = `http://127.0.0.1:8000/predict/${model}?start=${startDate}&end=${endDate}`;
+                let url = `http://127.0.0.1:8000/predict/${model}/2025`;
                 console.log("Fetching URL:", url);
 
                 let response = await fetch(url);
@@ -104,14 +105,25 @@ C
                     return;
                 }
 
-                let dates = Data.map(entry => entry.DateTime);
-                let values = Data.map(entry => parseFloat(entry.Forecast.replace(" kWh", "")));
+                // Convertir les dates de l'utilisateur en objets Date
+                let start = new Date(startDate);
+                let end = new Date(endDate);
+
+                // Filtrer les données pour ne garder que celles entre les deux dates
+                let filteredData = Data.filter(entry => {
+                    let entryDate = new Date(entry.DateTime);
+                    return entryDate >= start && entryDate <= end;
+                });
+
+
+                let dates = filteredData.map(entry => entry.DateTime);
+                let values = filteredData.map(entry => parseFloat(entry.Forecast.replace(" kWh", "")));
 
                 let displayMode = document.getElementById("display").value;
                 if (displayMode === "JSON") {
                     document.getElementById("chart").style.display = "none";
                     document.getElementById("result").style.display = "block";
-                    document.getElementById("result").textContent = JSON.stringify(data.forecast, null, 2);
+                    document.getElementById("result").textContent = JSON.stringify(Data, null, 2);
                 } else if (displayMode === "GRAPH") {
                     document.getElementById("result").style.display = "none";
                     document.getElementById("chart").style.display = "block";

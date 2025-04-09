@@ -2,3 +2,4 @@ pandas
 statsmodels
 uvicorn
 fastapi
+scikit-learn

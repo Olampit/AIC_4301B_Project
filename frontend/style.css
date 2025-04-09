@@ -16,7 +16,8 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Empêche le défilement inutile */
+    overflow-x: hidden; /* on garde un scroll horizontal bloqué */
+    overflow-y: auto;   /* permet le scroll vertical */
 }
 
 
@@ -74,13 +75,19 @@ button:hover {
 /* Résultat et graphique */
 #chart, #result {
     display: none; 
-    margin-top: 20px;
+    margin-top: 10px;  /* Ajoute de l'espace au-dessus */
     padding: 10px;
     background: white;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     width: 100%;
+    
+    min-height: 300px; /* Ajoute de l'espace minimum */
+    max-height: 500px; /* Corrige l'erreur d'espace */
+    
+    overflow: auto; /* Active le scroll si nécessaire */
 }
+
 
 pre {
     display: none; 

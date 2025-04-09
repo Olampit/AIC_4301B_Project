@@ -1,5 +1,5 @@
 # Utilisation d'une image Python Alpine pour une image légère
-FROM python:3.11.5-alpine
+FROM python:3.11.5
 
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /backend
