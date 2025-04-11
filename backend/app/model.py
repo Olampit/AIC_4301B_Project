@@ -2,13 +2,12 @@ import os
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-from app.database import parse_energy_data  # Fonction pour lire les fichiers .xls
+from app.database import parse_energy_data 
 from sklearn.linear_model import LinearRegression
 
 
-# 📂 Dossier où sauvegarder les prédictions
 SAVE_DIR = "saved_predictions"
-os.makedirs(SAVE_DIR, exist_ok=True)  # Crée le dossier s'il n'existe pas
+os.makedirs(SAVE_DIR, exist_ok=True)  
 
 
 def forecast_ar(xls_file, steps=30000):
@@ -27,7 +26,6 @@ def forecast_linear(xls_file, steps=30000):
     return _forecast_generic(xls_file=xls_file, steps=steps, model_name="LINEAR", retrain=True)
 
 
-# Fonction pour effectuer les prédictions
 def predictions(df, model_name, steps, order, csv_file):
     # Préparation des données
     df = df.reset_index()
@@ -37,7 +35,10 @@ def predictions(df, model_name, steps, order, csv_file):
     df = df.asfreq("15min")
     df.dropna(inplace=True)
 
+    # Optionnel : réduction de la taille de l'historique pour accélérer SARIMAX
+    df = df.last("90D")  # Garde les 90 derniers jours
     time_series = df['Consommation'].dropna()
+
     if len(time_series) < 2:
         print("Pas assez de données pour faire une prévision !")
         return []
@@ -54,7 +55,6 @@ def predictions(df, model_name, steps, order, csv_file):
             })
             y = time_series
 
-            # Création d'une nouvelle DataFrame pour les étapes futures
             future_dates = pd.date_range(start=time_series.index[-1] + pd.Timedelta(minutes=15), periods=steps, freq="15min")
             X_future = pd.DataFrame({
                 "Year": future_dates.year,
@@ -66,12 +66,21 @@ def predictions(df, model_name, steps, order, csv_file):
 
             model = LinearRegression()
             model.fit(X, y)
-            predictions = model.predict(X_future)  # Prédictions pour les prochains "steps"
-            predictions = pd.Series(predictions) # Conversion en objet panda.Series pour cohésion dans la suite du code
-        case "SARIMAX" :
-            model = SARIMAX(time_series, order=(1, 1, 1), seasonal_order=(1, 1, 1, 96))
-            predictions = model.fit().forecast(steps=steps)
-        case _ :
+            predictions = model.predict(X_future)
+            predictions = pd.Series(predictions)
+
+        case "SARIMAX":
+            model = SARIMAX(
+                time_series,
+                order=(1, 1, 1),
+                seasonal_order=(1, 0, 1, 96),
+                enforce_stationarity=False,
+                enforce_invertibility=False
+            )
+            results = model.fit(disp=False, method_kwargs={"maxiter": 50})
+            predictions = results.forecast(steps=steps)
+
+        case _:
             model = ARIMA(time_series, order=order)
             predictions = model.fit().forecast(steps=steps)
 
@@ -81,11 +90,7 @@ def predictions(df, model_name, steps, order, csv_file):
 
     # Création du DataFrame avec les prédictions
     forecast_df = pd.DataFrame({"DateTime": future_dates, "Forecast": predictions})
-
-    # Formatage des dates
     forecast_df["DateTime"] = forecast_df["DateTime"].dt.strftime("%Y-%m-%d %H:%M:%S")
-
-    # Formatage des prédictions
     forecast_df["Forecast"] = forecast_df["Forecast"].apply(lambda x: f"{x:.2f} kWh")
 
     # Sauvegarde des prédictions dans un fichier CSV
@@ -93,6 +98,7 @@ def predictions(df, model_name, steps, order, csv_file):
     print(f"Prédictions sauvegardées dans {csv_file}")
 
     return forecast_df.to_dict(orient="records")
+
 
 
 # Fonction principale prenant en compte si on veut retrain ou non
